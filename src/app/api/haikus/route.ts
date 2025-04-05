@@ -87,28 +87,41 @@ export async function GET(request: NextRequest) {
       
       let initialHaikus: Haiku[] = [];
       try {
-        // Get only existing haikus initially, DO NOT process feeds here
+        // --- Step 1: Send existing cached data immediately --- 
         console.log('Getting existing cached haikus...');
         initialHaikus = getAllHaikus(); 
-        console.log(`Found ${initialHaikus.length} existing haikus.`);
-
-        // Send initial data (might be empty if cache is empty)
         send('initial', initialHaikus);
         console.log(`Sent ${initialHaikus.length} initial haikus.`);
         
-        // Start background pre-translating for existing haikus
+        // --- Step 2: Start background pre-translating for existing cached items --- 
         if (initialHaikus.length > 0) {
           Promise.all(initialHaikus.map(ensureTranslated))
             .then(() => console.log('Background pre-translation completed for initial items'))
             .catch(error => console.error('Error in background pre-translation:', error));
         }
 
+        // --- Step 3: Start initial feed processing IN THE BACKGROUND (non-blocking) --- 
+        (async () => {
+          try {
+            console.log('Starting background initial feed processing...');
+            await processNewFeedItems(); // Fetch and generate
+            const newlyProcessedHaikus = getAllHaikus(); // Get potentially updated list
+            console.log('Background initial feed processing finished.');
+            // Optional: Check if new items were added and send an update immediately
+            // This is complex due to potential overlap with polling interval
+            // For now, rely on the polling interval to send updates.
+          } catch (err) {
+            console.error('Error during background initial feed processing:', err);
+            send('error', { message: 'Error processing initial feed data.' });
+          }
+        })();
+
       } catch (initialError) {
-        console.error('Error during initial data load for SSE:', initialError);
-        send('error', { message: 'Failed to load initial data.' });
+        console.error('Error during initial data fetch for SSE:', initialError);
+        send('error', { message: 'Failed to load initial cached data.' });
       }
       
-      // Send status that initialization is complete
+      // Send status that initialization is complete (sent quickly, processing happens in background)
       send('status', { initializing: false });
 
       // Set up periodic polling (this will now fetch the *first* batch)
