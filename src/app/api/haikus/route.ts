@@ -60,23 +60,56 @@ export async function GET(request: NextRequest) {
   // Get all haikus and pre-translate them in the background
   const initialHaikus = getAllHaikus();
   // Start pre-translating in the background (don't await)
-  Promise.all(initialHaikus.map(ensureTranslated))
-    .then(() => console.log('Background pre-translation completed'))
-    .catch(error => console.error('Error in background pre-translation:', error));
+  // We will move the initial processing into the stream start
+  // Promise.all(initialHaikus.map(ensureTranslated))
+  //   .then(() => console.log('Background pre-translation completed'))
+  //   .catch(error => console.error('Error in background pre-translation:', error));
 
   const stream = new ReadableStream({
-    start(controller) {
+    async start(controller) { // Make start async
       console.log('SSE connection established.');
       // activeConnections.add(controller);
 
       // Function to send data to the client
       const send = (event: string, data: unknown) => {
-        controller.enqueue(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+        try {
+          controller.enqueue(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+        } catch (err) {
+          console.error(`Error sending SSE data for event ${event}:`, err);
+          // Attempt to close if enqueue fails (e.g., controller already closed)
+          try { controller.close(); } catch { /* ignore */ }
+        }
       };
+      
+      // Send status that we are initializing
+      send('status', { initializing: true });
+      
+      try {
+        // Perform initial feed processing and data loading HERE
+        console.log('Performing initial feed processing...');
+        await processNewFeedItems(); 
+        const initialHaikus = getAllHaikus();
+        console.log(`Initial processing done, found ${initialHaikus.length} haikus.`);
 
-      // Send initial data
-      send('initial', initialHaikus);
-      console.log(`Sent ${initialHaikus.length} initial haikus.`);
+        // Send initial data AFTER processing
+        send('initial', initialHaikus);
+        console.log(`Sent ${initialHaikus.length} initial haikus.`);
+        
+        // Start background pre-translating AFTER sending initial data
+        Promise.all(initialHaikus.map(ensureTranslated))
+          .then(() => console.log('Background pre-translation completed'))
+          .catch(error => console.error('Error in background pre-translation:', error));
+
+      } catch (initialError) {
+        console.error('Error during initial data load for SSE:', initialError);
+        send('error', { message: 'Failed to load initial data.' });
+        // Optionally close the connection if initial load fails critically
+        // controller.close(); 
+        // return; // Stop further execution in start if needed
+      }
+      
+      // Send status that initialization is complete
+      send('status', { initializing: false });
 
       // Set up periodic polling
       const intervalId = setInterval(async () => {
