@@ -6,7 +6,7 @@ const parser = new Parser();
 const FEED_SOURCES = [
   { name: "The Guardian", url: 'https://www.theguardian.com/world/rss' },
   { name: "BBC News", url: 'http://feeds.bbci.co.uk/news/world/rss.xml' },
-  { name: "Reuters", url: 'https://www.reuters.com/news/rss/world' }, // Note: Reuters RSS might require specific handling or may change
+  //{ name: "Reuters", url: 'https://www.reuters.com/news/rss/world' }, // Temporarily commented out due to 401 error
   { name: "CNN", url: 'http://rss.cnn.com/rss/edition_world.rss' },
   { name: "NPR News", url: 'https://feeds.npr.org/1001/rss.xml' },
   { name: "Al Jazeera", url: 'https://www.aljazeera.com/xml/rss/all.xml' },
