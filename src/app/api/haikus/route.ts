@@ -3,7 +3,7 @@ import { getAllHaikus, clearStore } from '@/lib/cache';
 import { processNewFeedItems } from '@/lib/processor';
 import { Haiku } from '@/types/haiku';
 import { translateHaikuToRussian } from '@/lib/server-translation';
-import { existsInCache, getFromCache, addToCache } from '@/lib/translation-cache';
+import { existsInCache, addToCache } from '@/lib/translation-cache';
 import { createHash } from 'crypto';
 
 // Interval for checking the RSS feed (2 minutes)
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
       // activeConnections.add(controller);
 
       // Function to send data to the client
-      const send = (event: string, data: any) => {
+      const send = (event: string, data: unknown) => {
         controller.enqueue(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
       };
 
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
         // activeConnections.delete(controller); 
         try {
              controller.close();
-        } catch (e) {
+        } catch (_error) {
             // Ignore error if already closed
         }
       });

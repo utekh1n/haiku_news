@@ -6,10 +6,6 @@ import { Haiku, TranslationCache } from '@/types/haiku';
 
 const MAX_HAIKUS_DISPLAYED = 16;
 
-// Russian translation of the description
-const DESCRIPTION_RU = "Если вы устали и вам отвлечься, но вы не хотите скролить социальные сети этот агренгатор новостей для вас.";
-const DESCRIPTION_EN = "If you're tired and want a distraction, but don't feel like scrolling through social media, this news aggregator is for you.";
-
 export default function Home() {
   // State for haikus and translations
   const [haikus, setHaikus] = useState<Haiku[]>([]);
@@ -198,7 +194,7 @@ export default function Home() {
       console.log('Closing EventSource');
       eventSource.close();
     };
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, [language, translateHaikus]); // Added language and translateHaikus to dependencies
 
   // Handle scroll direction detection for mobile header/footer
   useEffect(() => {
@@ -279,8 +275,8 @@ export default function Home() {
           <div className="text-yellow-300 text-sm md:text-base lg:text-lg text-right"> 
             {language === 'en' ? (
               <>
-                If you're tired and want a distraction,<br />
-                but don't feel like scrolling through social media, this news aggregator is for you.<br />
+                If you&apos;re tired and want a distraction,<br />
+                but don&apos;t feel like scrolling through social media, this news aggregator is for you.<br />
                 You can view the original article if you tap the block with Haiku.
               </>
             ) : (
@@ -302,8 +298,8 @@ export default function Home() {
           <div className="text-yellow-300 text-sm mb-3"> 
             {language === 'en' ? (
               <>
-                If you're tired and want a distraction,<br />
-                but don't feel like scrolling through social media, this news aggregator is for you.<br />
+                If you&apos;re tired and want a distraction,<br />
+                but don&apos;t feel like scrolling through social media, this news aggregator is for you.<br />
                 You can view the original article if you tap the block with Haiku.
               </>
             ) : (
