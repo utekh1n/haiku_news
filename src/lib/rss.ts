@@ -62,7 +62,7 @@ export async function fetchRssFeed(): Promise<RssItem[]> {
   
   // Use a subset of sources each time to minimize load
   const shuffledSources = [...FEED_SOURCES].sort(() => Math.random() - 0.5);
-  const sourcesToUse = shuffledSources.slice(0, 5); // Use only 5 random sources each time
+  const sourcesToUse = shuffledSources.slice(0, 2); // Use only 2 random sources each time (was 5)
   
   const allFeedPromises = sourcesToUse.map(fetchSingleFeed);
   const results = await Promise.allSettled(allFeedPromises);
