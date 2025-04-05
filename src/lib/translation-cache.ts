@@ -2,8 +2,20 @@ import fs from 'fs';
 import path from 'path';
 import { TranslationCache } from '@/types/haiku';
 
-// Path to the translation cache file
-const CACHE_FILE_PATH = path.join(process.cwd(), 'translation-cache.json');
+// Determine the correct writable path for the cache file
+const IS_SERVERLESS = !!process.env.VERCEL; // Check if running on Vercel
+const CACHE_DIR = IS_SERVERLESS ? '/tmp' : process.cwd();
+const CACHE_FILE_PATH = path.join(CACHE_DIR, 'translation-cache.json');
+
+// Ensure the /tmp directory exists if running serverless (Vercel might handle this, but good practice)
+if (IS_SERVERLESS && !fs.existsSync(CACHE_DIR)) {
+  try {
+    fs.mkdirSync(CACHE_DIR, { recursive: true });
+  } catch (error) {
+    console.error(`Error creating cache directory ${CACHE_DIR}:`, error);
+    // If directory creation fails, we might not be able to cache, but let the app continue
+  }
+}
 
 // Initialize cache from file or create empty cache
 export function initCache(): TranslationCache {
