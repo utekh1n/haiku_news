@@ -53,12 +53,13 @@ export async function GET(request: NextRequest) {
     console.log('Using existing cache, last cleared:', new Date(lastCacheClearTime).toLocaleString());
   }
 
-  // Immediately process the feed once on initial connection
-  // This ensures the client gets the freshest data right away
-  await processNewFeedItems();
+  // DO NOT process feed here, it blocks the initial response.
+  // Feed processing happens in the polling interval.
+  // await processNewFeedItems(); 
   
-  // Get all haikus and pre-translate them in the background
-  const initialHaikus = getAllHaikus();
+  // Get only currently cached haikus immediately
+  const initialHaikus = getAllHaikus(); 
+
   // Start pre-translating in the background (don't await)
   // We will move the initial processing into the stream start
   // Promise.all(initialHaikus.map(ensureTranslated))
