@@ -258,7 +258,7 @@ export default function Home() {
             <button 
               onClick={toggleLanguage}
               disabled={isTranslating}
-              className={`px-2 py-0.5 rounded transition-colors text-xs ${
+              className={`px-2 py-0.5 rounded text-xs ${
                 isTranslating 
                   ? 'bg-gray-500 cursor-not-allowed' 
                   : 'bg-white/20 hover:bg-white/30'
@@ -315,7 +315,7 @@ export default function Home() {
           <button 
             onClick={toggleLanguage}
             disabled={isTranslating}
-            className={`self-start px-2 py-0.5 rounded transition-colors mb-3 text-xs ${
+            className={`self-start px-2 py-0.5 rounded mb-3 text-xs ${
               isTranslating 
                 ? 'bg-gray-500 cursor-not-allowed' 
                 : 'bg-white/20 hover:bg-white/30'
