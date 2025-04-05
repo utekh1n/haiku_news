@@ -84,34 +84,33 @@ export async function GET(request: NextRequest) {
       // Send status that we are initializing
       send('status', { initializing: true });
       
+      let initialHaikus: Haiku[] = [];
       try {
-        // Perform initial feed processing and data loading HERE
-        console.log('Performing initial feed processing...');
-        await processNewFeedItems(); 
-        const initialHaikus = getAllHaikus();
-        console.log(`Initial processing done, found ${initialHaikus.length} haikus.`);
+        // Get only existing haikus initially, DO NOT process feeds here
+        console.log('Getting existing cached haikus...');
+        initialHaikus = getAllHaikus(); 
+        console.log(`Found ${initialHaikus.length} existing haikus.`);
 
-        // Send initial data AFTER processing
+        // Send initial data (might be empty if cache is empty)
         send('initial', initialHaikus);
         console.log(`Sent ${initialHaikus.length} initial haikus.`);
         
-        // Start background pre-translating AFTER sending initial data
-        Promise.all(initialHaikus.map(ensureTranslated))
-          .then(() => console.log('Background pre-translation completed'))
-          .catch(error => console.error('Error in background pre-translation:', error));
+        // Start background pre-translating for existing haikus
+        if (initialHaikus.length > 0) {
+          Promise.all(initialHaikus.map(ensureTranslated))
+            .then(() => console.log('Background pre-translation completed for initial items'))
+            .catch(error => console.error('Error in background pre-translation:', error));
+        }
 
       } catch (initialError) {
         console.error('Error during initial data load for SSE:', initialError);
         send('error', { message: 'Failed to load initial data.' });
-        // Optionally close the connection if initial load fails critically
-        // controller.close(); 
-        // return; // Stop further execution in start if needed
       }
       
       // Send status that initialization is complete
       send('status', { initializing: false });
 
-      // Set up periodic polling
+      // Set up periodic polling (this will now fetch the *first* batch)
       const intervalId = setInterval(async () => {
         try {
           console.log('Polling for new feed items...');
